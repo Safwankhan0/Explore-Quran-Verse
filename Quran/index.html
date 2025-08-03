@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quran Verse Explorer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e6e0fa; /* Soft lavender background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #2d3436;
+        }
+        .container {
+            text-align: center;
+            max-width: 900px;
+            padding: 20px;
+        }
+        .date-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            text-align: left;
+            font-size: 24px;
+            color: #2d3436; /* Dark slate gray */
+            display: flex;
+            gap: 10px;
+        }
+        .date-display span {
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .parent-box {
+            background-color: #dfe6e9; /* Light silver-gray */
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            margin-top: 80px;
+        }
+        .motivation-box, .verse-box {
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .motivation-box h2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 30px;
+            color: #6d214f; /* Deep burgundy */
+            margin-bottom: 20px;
+        }
+        .verse-box .arabic {
+            font-family: 'Amiri', serif;
+            font-size: 26px;
+            color: #2d3436;
+            margin-bottom: 15px;
+        }
+        .verse-box .transliteration {
+            font-style: italic;
+            font-size: 20px;
+            color: #636e72; /* Muted gray */
+            margin-bottom: 15px;
+        }
+        .verse-box .translation {
+            font-size: 18px;
+            color: #2d3436;
+            margin-bottom: 20px;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .nav-button {
+            background-color: #6d214f; /* Deep burgundy */
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .nav-button:hover {
+            background-color: #636e72; /* Muted gray */
+        }
+        .nav-button:disabled {
+            background-color: #b2bec3;
+            cursor: not-allowed;
+        }
+        @keyframes typeAndDelete {
+            0% { opacity: 0; width: 0; }
+            40% { opacity: 1; width: 100%; }
+            60% { opacity: 1; width: 100%; }
+            100% { opacity: 0; width: 0; }
+        }
+        .typing {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typeAndDelete 8s ease-in-out infinite;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Amiri&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="date-display">
+            <span class="typing" id="date-text"></span>
+        </div>
+        <div class="parent-box">
+            <div class="motivation-box">
+                <h2 id="motivational-quote"></h2>
+            </div>
+            <div class="verse-box">
+                <div class="arabic" id="verse-arabic"></div>
+                <div class="transliteration" id="verse-transliteration"></div>
+                <div class="translation" id="verse-translation"></div>
+                <div class="nav-buttons">
+                    <button class="nav-button" id="prev-verse">Previous Verse</button>
+                    <button class="nav-button" id="next-verse">Next Verse</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Date Animation (Single Line, Updates Daily)
+        function typeDate() {
+            const today = new Date();
+            const dateStr = `TODAY, ${today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+            document.getElementById('date-text').textContent = dateStr;
+        }
+        typeDate();
+        setInterval(typeDate, 60000);
+
+        // 30 Motivational Quotes
+        const motivationalQuotes = [
+            "Be Grateful, Because Allah gave you another chance another day to repent to him",
+            "Seek knowledge, for it is a light that guides you to Jannah",
+            "Trust in Allah’s plan, for He is the best of planners",
+            "Patience is a virtue that brings you closer to Allah",
+            "Turn to Allah in every trial, for He is the source of all strength",
+            "Your heart finds peace when it remembers Allah",
+            "Every step towards good deeds is a step towards Allah’s mercy",
+            "Forgive others, as Allah forgives you",
+            "Hold fast to the rope of Allah, for it will never lead you astray",
+            "Give charity, for it purifies your wealth and soul",
+            "Pray on time, for it is your connection to Allah",
+            "Seek Allah’s forgiveness, for He is the Most Merciful",
+            "Be kind, for kindness is beloved to Allah",
+            "Reflect on Allah’s signs, for they guide you to truth",
+            "Speak truth, for it is a command from Allah",
+            "Guard your tongue, for it can lead to Jannah or Jahannam",
+            "Strive for excellence, as Allah loves those who perfect their work",
+            "Be humble, for Allah elevates the humble",
+            "Remember death, for it brings you closer to Allah’s purpose",
+            "Love for your brother what you love for yourself",
+            "Seek Allah’s protection from evil, for He is the best protector",
+            "Be thankful, for gratitude increases Allah’s blessings",
+            "Worship Allah alone, for He has no partners",
+            "Follow the Sunnah, for it is the path to Allah’s pleasure",
+            "Persevere in hardship, for Allah is with the patient",
+            "Spread peace, for it is the greeting of the believers",
+            "Purify your heart, for Allah sees what is within",
+            "Trust Allah’s timing, for His decree is perfect",
+            "Seek knowledge from the cradle to the grave",
+            "Make dua, for it is the weapon of the believer"
+        ];
+
+        // 30 Quran Verses
+        const quranVerses = [
+            {
+                arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",
+                transliteration: "Fa-inna ma'a al-'usri yusra",
+                translation: "Indeed, with hardship [will be] ease. (Quran 94:5)"
+            },
+            {
+                arabic: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا",
+                transliteration: "Wa man yattaqi Allaha yaj'al lahu makhraja",
+                translation: "And whoever fears Allah - He will make for him a way out. (Quran 65:2)"
+            },
+            {
+                arabic: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
+                transliteration: "Inna Allaha ma'a as-sabireen",
+                translation: "Indeed, Allah is with the patient. (Quran 2:153)"
+            },
+            {
+                arabic: "وَقُل رَّبِّ زِدْنِي عِلْمًا",
+                transliteration: "Wa qul Rabbi zidni 'ilma",
+                translation: "And say, 'My Lord, increase me in knowledge.' (Quran 20:114)"
+            },
+            {
+                arabic: "إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا",
+                transliteration: "Inna Allaha yaghfiru adh-dhunuba jami'a",
+                translation: "Indeed, Allah forgives all sins. (Quran 39:53)"
+            },
+            {
+                arabic: "وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ",
+                transliteration: "Wa aqeemu as-salata wa atu az-zakata",
+                translation: "And establish prayer and give zakah. (Quran 2:43)"
+            },
+            {
+                arabic: "وَذَكِّرْ فَإِنَّ الذِّكْرَىٰ تَنفَعُ الْمُؤْمِنِينَ",
+                transliteration: "Wa dhakkir fa-inna adh-dhikra tanfa'u al-mu'mineen",
+                translation: "And remind, for indeed, the reminder benefits the believers. (Quran 51:55)"
+            },
+            {
+                arabic: "إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا",
+                transliteration: "Inna as-salata kanat 'ala al-mu'mineena kitaban mawqoota",
+                translation: "Indeed, prayer has been decreed upon the believers a decree of specified times. (Quran 4:103)"
+            },
+            {
+                arabic: "وَاللَّهُ يَعْلَمُ مَا فِي قُلُوبِكُمْ",
+                transliteration: "Wallahu ya'lamu ma fi quloobikum",
+                translation: "And Allah knows what is in your hearts. (Quran 33:51)"
+            },
+            {
+                arabic: "وَتَوَكَّلْ عَلَى الْعَزِيزِ الرَّحِيمِ",
+                transliteration: "Wa tawakkal 'ala al-'azeez ar-raheem",
+                translation: "And rely upon the Exalted in Might, the Merciful. (Quran 26:217)"
+            },
+            {
+                arabic: "وَسَارِعُوا إِلَىٰ مَغْفِرَةٍ مِّن رَّبِّكُمْ",
+                transliteration: "Wa sari'u ila maghfiratin min rabbikum",
+                translation: "And hasten to forgiveness from your Lord. (Quran 3:133)"
+            },
+            {
+                arabic: "إِنَّ رَبَّكَ لَبِالْمِرْصَادِ",
+                transliteration: "Inna rabbaka labil-mirsad",
+                translation: "Indeed, your Lord is in observation. (Quran 89:14)"
+            },
+            {
+                arabic: "وَلَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ",
+                transliteration: "Wa la taqnatu min rahmatillah",
+                translation: "And do not despair of the mercy of Allah. (Quran 39:53)"
+            },
+            {
+                arabic: "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا لِيَعْبُدُونِ",
+                transliteration: "Wa ma khalaqtu al-jinna wal-insa illa liya'budoon",
+                translation: "And I did not create the jinn and mankind except to worship Me. (Quran 51:56)"
+            },
+            {
+                arabic: "إِنَّ الْمُتَّقِينَ فِي جَنَّاتٍ وَنَعِيمٍ",
+                transliteration: "Inna al-muttaqeena fi jannatin wa na'eem",
+                translation: "Indeed, the righteous will be in gardens and pleasure. (Quran 52:17)"
+            },
+            {
+                arabic: "وَمَنْ أَحْسَنُ قَوْلًا مِّمَّن دَعَا إِلَى اللَّهِ",
+                transliteration: "Wa man ahsanu qawlan mimman da'a ila Allah",
+                translation: "And who is better in speech than one who invites to Allah. (Quran 41:33)"
+            },
+            {
+                arabic: "وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ",
+                transliteration: "Wa ma tawfiqi illa billah",
+                translation: "And my success is not but through Allah. (Quran 11:88)"
+            },
+            {
+                arabic: "فَاصْبِرْ إِنَّ وَعْدَ اللَّهِ حَقٌّ",
+                transliteration: "Fasbir inna wa'da Allahi haqq",
+                translation: "So be patient. Indeed, the promise of Allah is truth. (Quran 30:60)"
+            },
+            {
+                arabic: "وَاذْكُر رَّبَّكَ إِذَا نَسِيتَ",
+                transliteration: "Wadhkur rabbaka idha naseeta",
+                translation: "And remember your Lord when you forget. (Quran 18:24)"
+            },
+            {
+                arabic: "وَاللَّهُ يُحِبُّ الصَّابِرِينَ",
+                transliteration: "Wallahu yuhibbu as-sabireen",
+                translation: "And Allah loves the steadfast. (Quran 3:146)"
+            },
+            {
+                arabic: "إِنَّ اللَّهَ يَأْمُرُ بِالْعَدْلِ وَالْإِحْسَانِ",
+                transliteration: "Inna Allaha ya'muru bil-'adli wal-ihsan",
+                translation: "Indeed, Allah orders justice and good conduct. (Quran 16:90)"
+            },
+            {
+                arabic: "وَمَن يُسْلِمْ وَجْهَهُ إِلَى اللَّهِ وَهُوَ مُحْسِنٌ",
+                transliteration: "Wa man yuslim wajhahu ila Allahi wahuwa muhsin",
+                translation: "And whoever submits his face to Allah while he is a doer of good. (Quran 31:22)"
+            },
+            {
+                arabic: "وَاللَّهُ يَرْزُقُ مَن يَشَاءُ بِغَيْرِ حِسَابٍ",
+                transliteration: "Wallahu yarzuqu man yasha'u bighayri hisab",
+                translation: "And Allah provides for whom He wills without account. (Quran 2:212)"
+            },
+            {
+                arabic: "وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ",
+                transliteration: "Wa an laysa lil-insani illa ma sa'a",
+                translation: "And that there is not for man except that [good] for which he strives. (Quran 53:39)"
+            },
+            {
+                arabic: "وَمَنْ أَعْرَضَ عَن ذِكْرِي فَإِنَّ لَهُ مَعِيشَةً ضَنكًا",
+                transliteration: "Wa man a'rada 'an dhikri fa-inna lahu ma'eeshatan dank",
+                translation: "And whoever turns away from My remembrance - indeed, he will have a depressed life. (Quran 20:124)"
+            },
+            {
+                arabic: "إِنَّ الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ",
+                transliteration: "Inna alladhina amanu wa 'amilu as-salihat",
+                translation: "Indeed, those who have believed and done righteous deeds. (Quran 2:277)"
+            },
+            {
+                arabic: "وَلَا تَمْشِ فِي الْأَرْضِ مَرَحًا",
+                transliteration: "Wa la tamshi fi al-ardi maraha",
+                translation: "And do not walk upon the earth exultantly. (Quran 17:37)"
+            },
+            {
+                arabic: "وَقُلِ الْحَقُّ مِن رَّبِّكُمْ",
+                transliteration: "Wa quli al-haqqu min rabbikum",
+                translation: "And say, 'The truth is from your Lord.' (Quran 18:29)"
+            },
+            {
+                arabic: "وَمَا أَرْسَلْنَاكَ إِلَّا رَحْمَةً لِّلْعَالَمِينَ",
+                transliteration: "Wa ma arsalnaka illa rahmatan lil-'alameen",
+                translation: "And We have not sent you except as a mercy to the worlds. (Quran 21:107)"
+            },
+            {
+                arabic: "وَمَن يَعْمَلْ مِنَ الصَّالِحَاتِ وَهُوَ مُؤْمِنٌ",
+                transliteration: "Wa man ya'mal mina as-salihati wahuwa mu'min",
+                translation: "And whoever does righteous deeds while he is a believer. (Quran 20:112)"
+            }
+        ];
+
+        // Verse Navigation
+        let currentVerseIndex = Math.floor(Math.random() * quranVerses.length);
+
+        function updateVerse() {
+            const verse = quranVerses[currentVerseIndex];
+            document.getElementById('verse-arabic').textContent = verse.arabic;
+            document.getElementById('verse-transliteration').textContent = verse.transliteration;
+            document.getElementById('verse-translation').textContent = verse.translation;
+            // Update button states
+            document.getElementById('prev-verse').disabled = currentVerseIndex === 0;
+            document.getElementById('next-verse').disabled = currentVerseIndex === quranVerses.length - 1;
+        }
+
+        document.getElementById('prev-verse').addEventListener('click', () => {
+            if (currentVerseIndex > 0) {
+                currentVerseIndex--;
+                updateVerse();
+            }
+        });
+
+        document.getElementById('next-verse').addEventListener('click', () => {
+            if (currentVerseIndex < quranVerses.length - 1) {
+                currentVerseIndex++;    
+                updateVerse();
+            }
+        });
+
+        // Randomly select quote and initial verse on page load
+        function displayRandomContent() {
+            const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+            document.getElementById('motivational-quote').textContent = randomQuote;
+            updateVerse();
+        }
+        displayRandomContent();
+    </script>
+</body>
+</html>
