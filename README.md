@@ -8,11 +8,6 @@ Quran Verses: 30 verses with Arabic, transliteration, and English translation, n
 Elegant Design: Responsive layout with a lavender background, burgundy accents, and rounded boxes.
 Randomized Content: New quote and verse on each page reload.
 
-Installation
-
-Clone the repository:git clone https://github.com/your-username/quran-verse-explorer.git
-
-
 Navigate to the project directory:cd quran-verse-explorer
 
 
